@@ -44,7 +44,7 @@ header h1 span{color:#fff;font-weight:bold;}
 
 .camera-wrap{position:relative;border-radius:14px;overflow:hidden;border:2px solid var(--border);flex:1;min-width:280px;max-width:560px;background:#000;}
 #video{width:100%;display:block;transform:scaleX(-1);}
-#overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+#overlay{position:absolute;top:0;left:0;pointer-events:none;}
 .emotion-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);padding:10px 14px;display:flex;align-items:center;gap:10px;}
 #emoji-display{font-size:30px;transition:all 0.5s;}
 #emotion-label{font-size:18px;font-weight:bold;text-transform:uppercase;letter-spacing:2px;transition:color 0.5s;}
@@ -259,7 +259,7 @@ function init(){
   const hash=new URLSearchParams(window.location.hash.slice(1));
   const token=hash.get('access_token');
   if(token){
-    spotifyToken=token;
+    spotifyToken=code;
     localStorage.setItem('emp_token',token);
     window.history.replaceState({},'',window.location.pathname);
   } else {
@@ -298,15 +298,44 @@ async function loadModelsAndStart(){
 }
 
 async function startCamera(){
-  const video=document.getElementById('video');
-  const overlay=document.getElementById('overlay');
-  const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480},audio:false});
-  video.srcObject=stream;
+  const video   = document.getElementById('video');
+  const overlay = document.getElementById('overlay');
+  const stream  = await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:'user',width:640,height:480},audio:false
+  });
+  video.srcObject = stream;
   await new Promise(r=>{video.onloadedmetadata=r;});
+
   function syncSize(){
-    overlay.width=video.clientWidth;
-    overlay.height=video.clientHeight;
+    // Get exact rendered size of video content — not container size
+    const rect = video.getBoundingClientRect();
+    const videoAspect = video.videoWidth / video.videoHeight;
+    const elemAspect  = rect.width / rect.height;
+
+    let contentW, contentH, offsetX, offsetY;
+
+    if(videoAspect > elemAspect){
+      // Letterbox top/bottom
+      contentW = rect.width;
+      contentH = rect.width / videoAspect;
+      offsetX  = 0;
+      offsetY  = (rect.height - contentH) / 2;
+    } else {
+      // Letterbox left/right
+      contentH = rect.height;
+      contentW = rect.height * videoAspect;
+      offsetX  = (rect.width - contentW) / 2;
+      offsetY  = 0;
+    }
+
+    overlay.width  = contentW;
+    overlay.height = contentH;
+    overlay.style.left = offsetX + 'px';
+    overlay.style.top  = offsetY + 'px';
   }
+
+  // Wait for video to fully render before syncing
+  await new Promise(r => setTimeout(r, 200));
   syncSize();
   new ResizeObserver(syncSize).observe(video);
 }
@@ -353,20 +382,34 @@ function mapEmotion(s){
   return{emotion:'calm',confidence:n};
 }
 
-function drawFaceBox(ctx,box,emotion,overlay,video){
-  const scaleX=overlay.width/video.videoWidth;
-  const scaleY=overlay.height/video.videoHeight;
-  const color=COLORS[emotion]||'#ffffff';
-  const emoji=EMOJIS[emotion]||'🔍';
-  const bx=box.x*scaleX, by=box.y*scaleY;
-  const bw=box.width*scaleX, bh=box.height*scaleY;
-  const mx=overlay.width-bx-bw;
-  ctx.strokeStyle=color+'44'; ctx.lineWidth=6;
-  ctx.strokeRect(mx-3,by-3,bw+6,bh+6);
-  ctx.strokeStyle=color; ctx.lineWidth=2.5;
-  ctx.strokeRect(mx,by,bw,bh);
-  ctx.font='28px serif'; ctx.textAlign='center';
-  ctx.fillText(emoji,mx+bw/2,Math.max(30,by-6));
+function drawFaceBox(ctx, box, emotion, overlay, video){
+  const scaleX = overlay.width  / video.videoWidth;
+  const scaleY = overlay.height / video.videoHeight;
+  const color  = COLORS[emotion] || '#ffffff';
+  const emoji  = EMOJIS[emotion] || '🔍';
+
+  const bx = box.x     * scaleX;
+  const by = box.y     * scaleY;
+  const bw = box.width  * scaleX;
+  const bh = box.height * scaleY;
+
+  // Mirror X to match CSS flipped video
+  const mx = overlay.width - bx - bw;
+
+  // Glow
+  ctx.strokeStyle = color + '44';
+  ctx.lineWidth   = 6;
+  ctx.strokeRect(mx-3, by-3, bw+6, bh+6);
+
+  // Box
+  ctx.strokeStyle = color;
+  ctx.lineWidth   = 2.5;
+  ctx.strokeRect(mx, by, bw, bh);
+
+  // Emoji above box
+  ctx.font = '28px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(emoji, mx + bw/2, Math.max(30, by-6));
 }
 
 function updateEmotionUI(emotion,conf){

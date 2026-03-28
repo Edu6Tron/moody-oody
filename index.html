@@ -470,7 +470,7 @@ header h1 span{color:#fff;font-weight:bold;}
 // CONFIG
 // ══════════════════════════════════════════════════════
 const SPOTIFY_CLIENT_ID  = 'e4f3aea4d07a4685a525333a877c697a';
-const SPOTIFY_REDIRECT   = 'https://github.com/Edu6Tron/moody-oody/';
+const SPOTIFY_REDIRECT   = 'https://edu6tron.github.io/moody-oody/';
 const SPOTIFY_SCOPES     = [
   'streaming',
   'user-read-email',
@@ -561,7 +561,7 @@ function saveName() {
 function spotifyLogin() {
   const params = new URLSearchParams({
     client_id:     SPOTIFY_CLIENT_ID,
-    response_type: 'token',
+    response_type: 'code',
     redirect_uri:  SPOTIFY_REDIRECT,
     scope:         SPOTIFY_SCOPES,
   });

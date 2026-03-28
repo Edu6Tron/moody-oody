@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emotion Music Player — Team ASTROPHILE</title>
+<script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ── Reset & Base ─────────────────────────────────────── */
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#0a0a12;
+  --card:#111122;
+  --border:#1e1e30;
+  --text:#ffffff;
+  --muted:#666680;
+  --calm:#8BC4A8;
+  --happy:#FFD700;
+  --angry:#FF3333;
+  --stressed:#FF6400;
+  --drowsy:#9B5DE5;
+  --fear:#CC44FF;
+  --focused:#00C8FF;
+}
+body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;min-height:100vh;}
+
+/* ── Pages ───────────────────────────────────────────── */
+.page{display:none;min-height:100vh;}
+.page.active{display:flex;flex-direction:column;}
+
+/* ── Login Page ──────────────────────────────────────── */
+#page-login{align-items:center;justify-content:center;padding:24px;}
+.login-card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:40px 32px;
+  max-width:400px;
+  width:100%;
+  text-align:center;
+}
+.login-card h1{font-size:22px;margin-bottom:6px;}
+.login-card p{color:var(--muted);font-size:14px;margin-bottom:28px;}
+.login-card input{
+  width:100%;
+  padding:12px 16px;
+  background:#1a1a2e;
+  border:1px solid var(--border);
+  border-radius:10px;
+  color:#fff;
+  font-size:16px;
+  margin-bottom:16px;
+  outline:none;
+}
+.login-card input:focus{border-color:#4444aa;}
+.btn-primary{
+  width:100%;
+  padding:13px;
+  background:linear-gradient(135deg,#4444aa,#6644cc);
+  border:none;
+  border-radius:10px;
+  color:#fff;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:opacity 0.2s;
+}
+.btn-primary:hover{opacity:0.85;}
+.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+.spotify-btn{
+  width:100%;
+  padding:13px;
+  background:#1DB954;
+  border:none;
+  border-radius:10px;
+  color:#fff;
+  font-size:15px;
+  font-weight:bold;
+  cursor:pointer;
+  margin-top:10px;
+  transition:opacity 0.2s;
+}
+.spotify-btn:hover{opacity:0.85;}
+.divider{
+  display:flex;align-items:center;gap:10px;
+  margin:18px 0;color:var(--muted);font-size:13px;
+}
+.divider::before,.divider::after{
+  content:'';flex:1;border-top:1px solid var(--border);
+}
+.step-indicator{
+  display:flex;gap:8px;justify-content:center;margin-bottom:24px;
+}
+.step{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--border);transition:background 0.3s;
+}
+.step.active{background:#6644cc;}
+.step.done{background:#1DB954;}
+
+/* ── Main App Page ───────────────────────────────────── */
+#page-app{flex-direction:column;}
+header{
+  background:var(--card);
+  border-bottom:1px solid var(--border);
+  padding:12px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+header h1{font-size:15px;color:var(--muted);}
+header h1 span{color:#fff;font-weight:bold;}
+.header-right{display:flex;gap:8px;align-items:center;}
+.user-pill{
+  background:var(--border);
+  border-radius:20px;
+  padding:6px 12px;
+  font-size:13px;
+  cursor:pointer;
+}
+.icon-btn{
+  background:var(--border);
+  border:none;border-radius:8px;
+  padding:7px 10px;
+  color:#fff;font-size:16px;
+  cursor:pointer;
+}
+.icon-btn:hover{background:#2a2a3e;}
+
+.app-body{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  padding:14px;
+  flex:1;
+  justify-content:center;
+}
+
+/* ── Camera ──────────────────────────────────────────── */
+.camera-wrap{
+  position:relative;
+  border-radius:14px;
+  overflow:hidden;
+  border:2px solid var(--border);
+  flex:1;min-width:280px;max-width:560px;
+  background:#000;
+}
+#video{width:100%;display:block;transform:scaleX(-1);}
+#overlay{
+  position:absolute;top:0;left:0;
+  width:100%;height:100%;
+  pointer-events:none;transform:scaleX(-1);
+}
+.emotion-bar{
+  position:absolute;bottom:0;left:0;right:0;
+  background:rgba(0,0,0,0.75);
+  backdrop-filter:blur(4px);
+  padding:10px 14px;
+  display:flex;align-items:center;gap:10px;
+}
+#emoji-display{font-size:30px;transition:all 0.5s;}
+#emotion-label{
+  font-size:18px;font-weight:bold;
+  text-transform:uppercase;letter-spacing:2px;
+  transition:color 0.5s;
+}
+.conf-pill{
+  margin-left:auto;
+  background:rgba(255,255,255,0.1);
+  padding:4px 10px;border-radius:12px;
+  font-size:12px;
+}
+
+/* Loading overlay */
+#loading-overlay{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:#000;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;
+  z-index:10;
+}
+.spinner{
+  width:36px;height:36px;
+  border:3px solid #222;
+  border-top-color:#6644cc;
+  border-radius:50%;
+  animation:spin 0.8s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+#loading-text{color:var(--muted);font-size:14px;}
+
+/* ── Right Panel ─────────────────────────────────────── */
+.panel{
+  display:flex;flex-direction:column;gap:12px;
+  flex:1;min-width:260px;max-width:360px;
+}
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+}
+.card-title{
+  font-size:10px;text-transform:uppercase;
+  letter-spacing:2px;color:var(--muted);
+  margin-bottom:12px;
+}
+
+/* Now Playing */
+#track-name{
+  font-size:15px;font-weight:bold;
+  white-space:nowrap;overflow:hidden;
+  text-overflow:ellipsis;
+}
+#track-artist{font-size:13px;color:var(--muted);margin-top:3px;}
+.controls{display:flex;gap:8px;margin-top:12px;}
+.ctrl-btn{
+  flex:1;padding:10px;
+  background:#1a1a2e;border:none;
+  border-radius:8px;color:#fff;
+  font-size:18px;cursor:pointer;
+  transition:background 0.2s;
+}
+.ctrl-btn:hover{background:#2a2a3e;}
+
+/* Confidence */
+.conf-track{
+  background:#1a1a2e;border-radius:6px;
+  height:8px;overflow:hidden;margin-bottom:6px;
+}
+.conf-fill{
+  height:100%;border-radius:6px;
+  transition:width 0.6s,background 0.6s;
+  background:#00DC64;
+}
+.conf-note{font-size:11px;color:var(--muted);}
+
+/* Safety */
+.safety-badge{
+  text-align:center;padding:10px;
+  border-radius:8px;font-weight:bold;
+  font-size:13px;margin-top:8px;
+  transition:all 0.5s;
+}
+
+/* Log */
+.log-list{max-height:180px;overflow-y:auto;}
+.log-row{
+  display:flex;justify-content:space-between;
+  padding:6px 0;border-bottom:1px solid var(--border);
+  font-size:12px;
+}
+.log-row:last-child{border:none;}
+.log-em{font-weight:bold;text-transform:capitalize;}
+.log-t{color:var(--muted);}
+
+/* ── Stats Page ──────────────────────────────────────── */
+#page-stats{padding:16px;}
+.stats-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:16px;
+}
+.back-btn{
+  background:var(--border);border:none;
+  border-radius:8px;padding:8px 12px;
+  color:#fff;font-size:14px;cursor:pointer;
+}
+.stats-header h2{font-size:18px;font-weight:bold;}
+.toggle-row{
+  display:flex;gap:8px;margin-bottom:16px;
+}
+.toggle-btn{
+  padding:8px 16px;border:1px solid var(--border);
+  border-radius:20px;background:transparent;
+  color:var(--muted);font-size:13px;cursor:pointer;
+  transition:all 0.2s;
+}
+.toggle-btn.active{
+  background:#6644cc;border-color:#6644cc;color:#fff;
+}
+.download-row{display:flex;gap:8px;margin-bottom:16px;}
+.dl-btn{
+  flex:1;padding:10px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:10px;color:#fff;font-size:13px;
+  cursor:pointer;transition:background 0.2s;
+}
+.dl-btn:hover{background:#1a1a2e;}
+.stats-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+  gap:10px;margin-bottom:16px;
+}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:14px;text-align:center;
+}
+.stat-num{font-size:28px;font-weight:bold;}
+.stat-label{font-size:11px;color:var(--muted);margin-top:4px;}
+.bar-chart{display:flex;flex-direction:column;gap:8px;}
+.bar-row{display:flex;align-items:center;gap:10px;font-size:13px;}
+.bar-label{width:90px;text-align:right;text-transform:capitalize;color:var(--muted);}
+.bar-track{flex:1;background:#1a1a2e;border-radius:4px;height:20px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;transition:width 0.6s;}
+.bar-val{width:36px;font-size:12px;color:var(--muted);}
+.danger-summary{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:12px;padding:16px;margin-top:12px;
+  text-align:center;
+}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media(max-width:600px){
+  .panel{max-width:100%;}
+  .camera-wrap{max-width:100%;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 1 — LOGIN / SETUP
+══════════════════════════════════════════════════════ -->
+<div id="page-login" class="page active">
+  <div class="login-card">
+    <div class="step-indicator">
+      <div class="step active" id="step1"></div>
+      <div class="step" id="step2"></div>
+    </div>
+
+    <!-- Step 1: Name -->
+    <div id="setup-step1">
+      <h1>👋 Welcome</h1>
+      <p>Emotion Music Player by Team ASTROPHILE</p>
+      <br>
+      <input type="text" id="name-input"
+             placeholder="Enter your name to continue"
+             maxlength="30">
+      <button class="btn-primary" onclick="saveName()">Continue →</button>
+    </div>
+
+    <!-- Step 2: Spotify -->
+    <div id="setup-step2" style="display:none;">
+      <h1>🎵 Connect Spotify</h1>
+      <p>Log in with your Spotify Premium account to play music based on your emotions.</p>
+      <br>
+      <button class="spotify-btn" onclick="spotifyLogin()">
+        Connect Spotify Premium
+      </button>
+      <div class="divider">or</div>
+      <button class="btn-primary"
+              style="background:#1a1a2e;border:1px solid var(--border);"
+              onclick="skipSpotify()">
+        Skip — use without music
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 2 — MAIN APP
+══════════════════════════════════════════════════════ -->
+<div id="page-app" class="page">
+  <header>
+    <h1>Team ASTROPHILE — <span>Emotion Player</span></h1>
+    <div class="header-right">
+      <div class="user-pill" id="user-pill">👤 —</div>
+      <button class="icon-btn" onclick="showStats()">📊</button>
+      <button class="icon-btn" onclick="logout()" title="Logout">⚙️</button>
+    </div>
+  </header>
+
+  <div class="app-body">
+
+    <!-- Camera -->
+    <div class="camera-wrap">
+      <video id="video" autoplay muted playsinline></video>
+      <canvas id="overlay"></canvas>
+
+      <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text">Loading emotion AI...</div>
+      </div>
+
+      <div class="emotion-bar">
+        <span id="emoji-display">🔍</span>
+        <span id="emotion-label" style="color:#fff;">Scanning...</span>
+        <span class="conf-pill" id="conf-text">0%</span>
+      </div>
+    </div>
+
+    <!-- Panel -->
+    <div class="panel">
+
+      <!-- Now Playing -->
+      <div class="card">
+        <div class="card-title">Now Playing</div>
+        <div id="track-name">—</div>
+        <div id="track-artist">Waiting for emotion...</div>
+        <div class="controls">
+          <button class="ctrl-btn" onclick="spotifyControl('pause')">⏸</button>
+          <button class="ctrl-btn" onclick="spotifyControl('next')">⏭</button>
+          <button class="ctrl-btn" onclick="spotifyControl('prev')">⏮</button>
+        </div>
+      </div>
+
+      <!-- Confidence -->
+      <div class="card">
+        <div class="card-title">Detection Confidence</div>
+        <div class="conf-track">
+          <div class="conf-fill" id="conf-bar" style="width:0%"></div>
+        </div>
+        <div class="conf-note">Song changes only above 90% confidence</div>
+        <div class="safety-badge" id="safety-badge"
+             style="background:#0a2a0a;color:#44ff88;">
+          ✅ Safe Driving
+        </div>
+      </div>
+
+      <!-- Session Log -->
+      <div class="card">
+        <div class="card-title">This Session</div>
+        <div class="log-list" id="log-list">
+          <div class="log-row">
+            <span style="color:var(--muted)">No detections yet</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     PAGE 3 — STATS
+══════════════════════════════════════════════════════ -->
+<div id="page-stats" class="page">
+  <div class="stats-header">
+    <button class="back-btn" onclick="showApp()">← Back</button>
+    <h2>📊 Stats</h2>
+  </div>
+
+  <div class="toggle-row">
+    <button class="toggle-btn active" id="btn-session"
+            onclick="switchStats('session')">This Session</button>
+    <button class="toggle-btn" id="btn-alltime"
+            onclick="switchStats('alltime')">All Time</button>
+  </div>
+
+  <div class="download-row">
+    <button class="dl-btn" onclick="downloadCSV()">⬇ Download CSV</button>
+    <button class="dl-btn" onclick="downloadPDF()">⬇ Download PDF</button>
+  </div>
+
+  <div class="stats-grid" id="stats-grid"></div>
+
+  <div class="card">
+    <div class="card-title">Emotion Breakdown</div>
+    <div class="bar-chart" id="bar-chart"></div>
+  </div>
+
+  <div class="danger-summary" id="danger-summary"></div>
+</div>
+
+<!-- Spotify SDK -->
+<script src="https://sdk.scdn.co/spotify-player.js"></script>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════
+const SPOTIFY_CLIENT_ID  = 'e4f3aea4d07a4685a525333a877c697a';
+const SPOTIFY_REDIRECT   = 'https://github.com/Edu6Tron/moody-oody/';
+const SPOTIFY_SCOPES     = [
+  'streaming',
+  'user-read-email',
+  'user-read-private',
+  'user-modify-playback-state',
+  'user-read-playback-state'
+].join(' ');
+
+const EMOTION_MAP = {
+  neutral:   'calm',
+  happy:     'happy',
+  angry:     'angry',
+  fearful:   'fear',
+  disgusted: 'angry',
+  sad:       'stressed',
+  surprised: 'focused',
+};
+const EMOJIS = {
+  calm:'😌', happy:'😄', angry:'😠',
+  stressed:'😰', drowsy:'😴', fear:'😱', focused:'🧠'
+};
+const COLORS = {
+  calm:'#8BC4A8', happy:'#FFD700', angry:'#FF3333',
+  stressed:'#FF6400', drowsy:'#9B5DE5', fear:'#CC44FF', focused:'#00C8FF'
+};
+const SEARCH_QUERIES = {
+  calm:    'Arijit Singh hindi slow romantic',
+  happy:   'Pritam bollywood upbeat dance happy',
+  angry:   'Mohit Chauhan soft hindi calm soothing',
+  stressed:'Shreya Ghoshal soft peaceful hindi slow',
+  drowsy:  'Badshah hindi energetic fast dance',
+  fear:    'Arijit Singh gentle soft slow hindi',
+  focused: 'bollywood instrumental background hindi',
+};
+const DANGER_EMOTIONS = ['angry','drowsy','fear','stressed'];
+const COOLDOWN_MS     = 15000;
+const CONF_THRESHOLD  = 90;
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let userName        = '';
+let spotifyToken    = null;
+let spotifyPlayer   = null;
+let spotifyDeviceId = null;
+let currentEmotion  = 'calm';
+let currentConf     = 0;
+let lastDetected    = '';
+let lastTriggerTime = 0;
+let sessionStart    = Date.now();
+let sessionLogs     = [];
+let statsMode       = 'session';
+let detectionActive = false;
+
+// Smooth score blending
+let smoothScores = {
+  neutral:0, happy:0, angry:0,
+  fearful:0, disgusted:0, sad:0, surprised:0
+};
+const BLEND = 0.1;
+
+// ══════════════════════════════════════════════════════
+// PAGE NAVIGATION
+// ══════════════════════════════════════════════════════
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+function showApp()   { showPage('page-app');   updateLogUI(); }
+function showStats() { showPage('page-stats'); renderStats(); }
+
+// ══════════════════════════════════════════════════════
+// LOGIN / SETUP
+// ══════════════════════════════════════════════════════
+function saveName() {
+  const val = document.getElementById('name-input').value.trim();
+  if (!val) return;
+  userName = val;
+  localStorage.setItem('emp_name', userName);
+
+  // Go to step 2
+  document.getElementById('setup-step1').style.display = 'none';
+  document.getElementById('setup-step2').style.display = 'block';
+  document.getElementById('step1').classList.replace('active','done');
+  document.getElementById('step2').classList.add('active');
+}
+
+function spotifyLogin() {
+  const params = new URLSearchParams({
+    client_id:     SPOTIFY_CLIENT_ID,
+    response_type: 'token',
+    redirect_uri:  SPOTIFY_REDIRECT,
+    scope:         SPOTIFY_SCOPES,
+  });
+  window.location.href = 'https://accounts.spotify.com/authorize?' + params;
+}
+
+function skipSpotify() {
+  localStorage.setItem('emp_skip_spotify', '1');
+  startApp();
+}
+
+function logout() {
+  if (!confirm('Reset profile and logout?')) return;
+  localStorage.removeItem('emp_name');
+  localStorage.removeItem('emp_skip_spotify');
+  localStorage.removeItem('emp_token');
+  location.reload();
+}
+
+// ══════════════════════════════════════════════════════
+// STARTUP — check if returning user or new
+// ══════════════════════════════════════════════════════
+function init() {
+  // Check Spotify token in URL hash (after redirect)
+  const hash   = new URLSearchParams(window.location.hash.slice(1));
+  const token  = hash.get('access_token');
+  if (token) {
+    spotifyToken = token;
+    localStorage.setItem('emp_token', token);
+    window.history.replaceState({}, '', window.location.pathname);
+  } else {
+    spotifyToken = localStorage.getItem('emp_token');
+  }
+
+  userName = localStorage.getItem('emp_name');
+
+  if (!userName) {
+    showPage('page-login');
+    return;
+  }
+
+  // Returning user — go straight to app
+  startApp();
+}
+
+function startApp() {
+  showPage('page-app');
+  document.getElementById('user-pill').textContent = '👤 ' + userName;
+  sessionStart = Date.now();
+  sessionLogs  = [];
+  loadModelsAndStart();
+  if (spotifyToken) initSpotify();
+}
+
+// ══════════════════════════════════════════════════════
+// FACE-API.JS — Load Models + Start Detection
+// ══════════════════════════════════════════════════════
+const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
+
+async function loadModelsAndStart() {
+  const txt = document.getElementById('loading-text');
+  try {
+    txt.textContent = 'Loading face detection model...';
+    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+    txt.textContent = 'Loading expression model...';
+    await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+    txt.textContent = 'Starting camera...';
+    await startCamera();
+    document.getElementById('loading-overlay').style.display = 'none';
+    detectionActive = true;
+    detectLoop();
+  } catch(e) {
+    txt.textContent = 'Error: ' + e.message;
+    console.error(e);
+  }
+}
+
+async function startCamera() {
+  const video = document.getElementById('video');
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'user', width: 640, height: 480 },
+    audio: false
+  });
+  video.srcObject = stream;
+  await new Promise(r => video.onloadedmetadata = r);
+  const overlay = document.getElementById('overlay');
+  overlay.width  = video.videoWidth;
+  overlay.height = video.videoHeight;
+}
+
+// ══════════════════════════════════════════════════════
+// DETECTION LOOP
+// ══════════════════════════════════════════════════════
+let frameCount = 0;
+
+async function detectLoop() {
+  if (!detectionActive) return;
+  frameCount++;
+
+  if (frameCount % 5 === 0) {
+    const video   = document.getElementById('video');
+    const overlay = document.getElementById('overlay');
+    const ctx     = overlay.getContext('2d');
+    ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+    try {
+      const det = await faceapi
+        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceExpressions();
+
+      if (det) {
+        const raw = det.expressions; // {neutral, happy, angry, fearful, disgusted, sad, surprised}
+
+        // Blend scores smoothly
+        for (const k of Object.keys(smoothScores)) {
+          smoothScores[k] += ((raw[k] || 0) * 100 - smoothScores[k]) * BLEND;
+        }
+
+        const { emotion, confidence } = mapEmotion(smoothScores);
+        currentEmotion = emotion;
+        currentConf    = confidence;
+
+        updateEmotionUI(emotion, confidence);
+        drawFaceBox(ctx, det.detection.box, emotion);
+        maybeTrigger(emotion, confidence);
+      } else {
+        updateEmotionUI('scanning', 0);
+      }
+    } catch(e) {}
+  }
+
+  requestAnimationFrame(detectLoop);
+}
+
+function mapEmotion(s) {
+  const h  = s.happy     || 0;
+  const sa = s.sad       || 0;
+  const a  = s.angry     || 0;
+  const f  = s.fearful   || 0;
+  const d  = s.disgusted || 0;
+  const su = s.surprised || 0;
+  const n  = s.neutral   || 0;
+  const mx = Math.max(h,sa,a,f,d,su,n);
+
+  // Drowsy: all scores low and scattered
+  if (mx < 35 && n < 40)              return {emotion:'drowsy',   confidence: mx};
+  if (f >= 55 && a < 25 && sa < 25)   return {emotion:'fear',     confidence: f};
+  if (a >= 55)                         return {emotion:'angry',    confidence: a};
+  if (a >= 35 && d >= 30)             return {emotion:'angry',    confidence: (a+d)/2};
+  if (f >= 30 && sa >= 20)            return {emotion:'stressed',  confidence: (f+sa)/2};
+  if (f >= 40 && f < 55)              return {emotion:'stressed',  confidence: f};
+  if (sa >= 45 && a < 20)             return {emotion:'stressed',  confidence: sa};
+  if (h >= 55 && a < 15 && sa < 15)   return {emotion:'happy',    confidence: h};
+  if (n >= 40 && n <= 75 && h < 25 && a < 20 && f < 20)
+                                       return {emotion:'focused',  confidence: n};
+  if (n >= 60)                         return {emotion:'calm',     confidence: n};
+  return {emotion:'calm', confidence: n};
+}
+
+function drawFaceBox(ctx, box, emotion) {
+  const color = COLORS[emotion] || '#ffffff';
+  const {x, y, width, height} = box;
+  // Mirror because video is flipped
+  const mx = ctx.canvas.width - x - width;
+  ctx.strokeStyle = color;
+  ctx.lineWidth   = 2;
+  ctx.strokeRect(mx, y, width, height);
+
+  // Emoji above box
+  const emoji = EMOJIS[emotion] || '🔍';
+  ctx.font      = '32px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(emoji, mx + width/2, Math.max(36, y - 8));
+}
+
+// ══════════════════════════════════════════════════════
+// UI UPDATES
+// ══════════════════════════════════════════════════════
+function updateEmotionUI(emotion, conf) {
+  const color  = COLORS[emotion]  || '#ffffff';
+  const emoji  = EMOJIS[emotion]  || '🔍';
+  const label  = emotion === 'scanning' ? 'Scanning...' : emotion.toUpperCase();
+
+  document.getElementById('emoji-display').textContent = emoji;
+  document.getElementById('emotion-label').textContent = label;
+  document.getElementById('emotion-label').style.color = color;
+  document.getElementById('conf-text').textContent = Math.round(conf) + '%';
+
+  const bar = document.getElementById('conf-bar');
+  bar.style.width      = Math.round(conf) + '%';
+  bar.style.background = conf >= CONF_THRESHOLD ? '#00DC64' : '#FF6400';
+
+  const badge = document.getElementById('safety-badge');
+  if (DANGER_EMOTIONS.includes(emotion)) {
+    badge.textContent        = '⚠️ DANGER — ' + emotion.toUpperCase();
+    badge.style.background   = '#2a0a0a';
+    badge.style.color        = '#ff4444';
+  } else {
+    badge.textContent        = '✅ Safe Driving';
+    badge.style.background   = '#0a2a0a';
+    badge.style.color        = '#44ff88';
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// TRIGGER — Log + Play
+// ══════════════════════════════════════════════════════
+function maybeTrigger(emotion, conf) {
+  const now = Date.now();
+  if (emotion !== lastDetected &&
+      (now - lastTriggerTime) > COOLDOWN_MS &&
+      conf >= CONF_THRESHOLD) {
+
+    logEmotion(emotion, conf);
+    if (spotifyToken && spotifyDeviceId) {
+      playForEmotion(emotion);
+    }
+    lastDetected    = emotion;
+    lastTriggerTime = now;
+  }
+}
+
+// ══════════════════════════════════════════════════════
+// LOGGING — localStorage only, never leaves device
+// ══════════════════════════════════════════════════════
+function logEmotion(emotion, confidence) {
+  const entry = {
+    timestamp:  new Date().toISOString(),
+    emotion:    emotion,
+    confidence: parseFloat(confidence.toFixed(2)),
+    session:    sessionStart,
+  };
+
+  // Session log (memory only)
+  sessionLogs.push(entry);
+  updateLogUI();
+
+  // All-time log (localStorage)
+  const all = getAllLogs();
+  all.push(entry);
+  localStorage.setItem('emp_logs', JSON.stringify(all));
+}
+
+function getAllLogs() {
+  try {
+    return JSON.parse(localStorage.getItem('emp_logs') || '[]');
+  } catch { return []; }
+}
+
+function getSessionLogs() {
+  return sessionLogs;
+}
+
+function updateLogUI() {
+  const logs = [...sessionLogs].reverse().slice(0, 15);
+  const el   = document.getElementById('log-list');
+  if (!logs.length) {
+    el.innerHTML = '<div class="log-row"><span style="color:var(--muted)">No detections yet</span></div>';
+    return;
+  }
+  el.innerHTML = logs.map(l => {
+    const t = new Date(l.timestamp).toLocaleTimeString();
+    return `<div class="log-row">
+      <span class="log-em" style="color:${COLORS[l.emotion]||'#fff'}">${l.emotion}</span>
+      <span>${l.confidence.toFixed(1)}%</span>
+      <span class="log-t">${t}</span>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════
+// SPOTIFY
+// ══════════════════════════════════════════════════════
+window.onSpotifyWebPlaybackSDKReady = () => {
+  if (!spotifyToken) return;
+  spotifyPlayer = new Spotify.Player({
+    name:          'Emotion Music Player',
+    getOAuthToken: cb => cb(spotifyToken),
+    volume:        0.8,
+  });
+  spotifyPlayer.addListener('ready', ({ device_id }) => {
+    spotifyDeviceId = device_id;
+    console.log('[Spotify] Ready on device:', device_id);
+  });
+  spotifyPlayer.connect();
+};
+
+function initSpotify() {
+  // SDK ready fires automatically
+}
+
+async function playForEmotion(emotion) {
+  const query = SEARCH_QUERIES[emotion] || 'hindi calm';
+  try {
+    const res = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10&market=IN`,
+      { headers: { Authorization: 'Bearer ' + spotifyToken } }
+    );
+    const data   = await res.json();
+    const tracks = data.tracks?.items || [];
+    if (!tracks.length) return;
+
+    const INDIAN = ['Arijit Singh','Pritam','Mohit Chauhan','Shreya Ghoshal',
+                    'Badshah','Neha Kakkar','Jubin Nautiyal','Atif Aslam',
+                    'AR Rahman','Vishal Dadlani','Sonu Nigam','KK'];
+    const filtered = tracks.filter(t =>
+      t.artists.some(a => INDIAN.includes(a.name))
+    );
+    const pool  = filtered.length ? filtered : tracks;
+    const track = pool[Math.floor(Math.random() * pool.length)];
+
+    document.getElementById('track-name').textContent   = track.name;
+    document.getElementById('track-artist').textContent = track.artists[0].name;
+
+    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${spotifyDeviceId}`, {
+      method:  'PUT',
+      headers: {
+        Authorization:  'Bearer ' + spotifyToken,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ uris: [track.uri] }),
+    });
+  } catch(e) {
+    console.error('[Spotify]', e);
+  }
+}
+
+async function spotifyControl(action) {
+  if (!spotifyToken) return;
+  const endpoints = {
+    pause: ['me/player/pause',    'PUT'],
+    next:  ['me/player/next',     'POST'],
+    prev:  ['me/player/previous', 'POST'],
+  };
+  const [path, method] = endpoints[action] || [];
+  if (!path) return;
+  await fetch(`https://api.spotify.com/v1/${path}`, {
+    method,
+    headers: { Authorization: 'Bearer ' + spotifyToken },
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// STATS PAGE
+// ══════════════════════════════════════════════════════
+function switchStats(mode) {
+  statsMode = mode;
+  document.getElementById('btn-session').classList.toggle('active', mode === 'session');
+  document.getElementById('btn-alltime').classList.toggle('active', mode === 'alltime');
+  renderStats();
+}
+
+function renderStats() {
+  const logs = statsMode === 'session' ? getSessionLogs() : getAllLogs();
+
+  // Summary cards
+  const total   = logs.length;
+  const danger  = logs.filter(l => DANGER_EMOTIONS.includes(l.emotion)).length;
+  const pct     = total ? ((danger/total)*100).toFixed(1) : 0;
+  const avgConf = total ? (logs.reduce((s,l)=>s+l.confidence,0)/total).toFixed(1) : 0;
+
+  document.getElementById('stats-grid').innerHTML = `
+    <div class="stat-card">
+      <div class="stat-num">${total}</div>
+      <div class="stat-label">Total Detections</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#ff4444">${danger}</div>
+      <div class="stat-label">Danger States</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#00DC64">${avgConf}%</div>
+      <div class="stat-label">Avg Confidence</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">${pct}%</div>
+      <div class="stat-label">Risk %</div>
+    </div>
+  `;
+
+  // Bar chart
+  const counts = {};
+  logs.forEach(l => counts[l.emotion] = (counts[l.emotion]||0) + 1);
+  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max    = sorted[0]?.[1] || 1;
+
+  document.getElementById('bar-chart').innerHTML = sorted.map(([em,ct]) => `
+    <div class="bar-row">
+      <span class="bar-label">${em}</span>
+      <div class="bar-track">
+        <div class="bar-fill"
+             style="width:${(ct/max*100).toFixed(1)}%;background:${COLORS[em]||'#888'}">
+        </div>
+      </div>
+      <span class="bar-val">${ct}</span>
+    </div>
+  `).join('');
+
+  // Danger summary
+  const safetyColor = pct > 30 ? '#ff4444' : pct > 15 ? '#FF6400' : '#44ff88';
+  const safetyText  = pct > 30 ? '⚠️ HIGH RISK SESSION'
+                    : pct > 15 ? '⚡ MODERATE RISK'
+                    :            '✅ SAFE SESSION';
+  document.getElementById('danger-summary').innerHTML = `
+    <div style="font-size:18px;font-weight:bold;color:${safetyColor}">${safetyText}</div>
+    <div style="color:var(--muted);font-size:13px;margin-top:6px">
+      ${pct}% of detections were danger states
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════
+// DOWNLOAD CSV
+// ══════════════════════════════════════════════════════
+function downloadCSV() {
+  const logs = statsMode === 'session' ? getSessionLogs() : getAllLogs();
+  if (!logs.length) { alert('No data to download yet.'); return; }
+
+  const rows = [
+    ['Timestamp','Emotion','Confidence'],
+    ...logs.map(l => [l.timestamp, l.emotion, l.confidence])
+  ];
+  const csv  = rows.map(r => r.join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `emotion_log_${statsMode}_${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ══════════════════════════════════════════════════════
+// DOWNLOAD PDF
+// ══════════════════════════════════════════════════════
+function downloadPDF() {
+  const logs = statsMode === 'session' ? getSessionLogs() : getAllLogs();
+  if (!logs.length) { alert('No data to download yet.'); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc  = new jsPDF();
+  const now  = new Date().toLocaleString();
+
+  // Header
+  doc.setFillColor(10, 10, 18);
+  doc.rect(0, 0, 210, 297, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18);
+  doc.text('Emotion Music Player', 14, 20);
+  doc.setFontSize(11);
+  doc.setTextColor(150, 150, 180);
+  doc.text('Team ASTROPHILE — Driving Emotion Report', 14, 28);
+  doc.text(`User: ${userName}`, 14, 36);
+  doc.text(`Generated: ${now}`, 14, 42);
+  doc.text(`Mode: ${statsMode === 'session' ? 'This Session' : 'All Time'}`, 14, 48);
+
+  // Stats
+  const total   = logs.length;
+  const danger  = logs.filter(l => DANGER_EMOTIONS.includes(l.emotion)).length;
+  const pct     = total ? ((danger/total)*100).toFixed(1) : 0;
+  const avgConf = total ? (logs.reduce((s,l)=>s+l.confidence,0)/total).toFixed(1) : 0;
+
+  doc.setFillColor(20, 20, 40);
+  doc.rect(14, 54, 182, 30, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(10);
+  doc.text(`Total Detections: ${total}`, 20, 64);
+  doc.text(`Danger States: ${danger} (${pct}%)`, 80, 64);
+  doc.text(`Avg Confidence: ${avgConf}%`, 155, 64);
+
+  const safety = pct > 30 ? 'HIGH RISK' : pct > 15 ? 'MODERATE RISK' : 'SAFE SESSION';
+  doc.setFontSize(12);
+  doc.setTextColor(pct > 30 ? 255 : 68, pct > 30 ? 68 : 255, pct > 30 ? 68 : 136);
+  doc.text(safety, 20, 76);
+
+  // Table header
+  doc.setFillColor(30, 30, 60);
+  doc.rect(14, 90, 182, 8, 'F');
+  doc.setTextColor(180,180,220);
+  doc.setFontSize(9);
+  doc.text('Timestamp',   16, 96);
+  doc.text('Emotion',    100, 96);
+  doc.text('Confidence', 155, 96);
+
+  // Table rows
+  let y = 104;
+  logs.slice(-50).forEach((l, i) => {
+    if (y > 270) { doc.addPage(); y = 20; }
+    doc.setFillColor(i%2===0 ? 15:20, i%2===0 ? 15:20, i%2===0 ? 30:40);
+    doc.rect(14, y-5, 182, 7, 'F');
+    doc.setTextColor(200,200,220);
+    doc.setFontSize(8);
+    doc.text(new Date(l.timestamp).toLocaleString(), 16, y);
+    doc.text(l.emotion,                              100, y);
+    doc.text(l.confidence.toFixed(1) + '%',          155, y);
+    y += 7;
+  });
+
+  doc.save(`emotion_report_${statsMode}_${Date.now()}.pdf`);
+}
+
+// ══════════════════════════════════════════════════════
+// START
+// ══════════════════════════════════════════════════════
+window.addEventListener('load', init);
+</script>
+</body>
+</html>

@@ -7,294 +7,83 @@
 <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-/* ── Reset & Base ─────────────────────────────────────── */
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
-  --bg:#0a0a12;
-  --card:#111122;
-  --border:#1e1e30;
-  --text:#ffffff;
-  --muted:#666680;
-  --calm:#8BC4A8;
-  --happy:#FFD700;
-  --angry:#FF3333;
-  --stressed:#FF6400;
-  --drowsy:#9B5DE5;
-  --fear:#CC44FF;
-  --focused:#00C8FF;
+  --bg:#0a0a12;--card:#111122;--border:#1e1e30;--text:#ffffff;--muted:#666680;
 }
 body{background:var(--bg);color:var(--text);font-family:Arial,sans-serif;min-height:100vh;}
-
-/* ── Pages ───────────────────────────────────────────── */
 .page{display:none;min-height:100vh;}
 .page.active{display:flex;flex-direction:column;}
 
-/* ── Login Page ──────────────────────────────────────── */
 #page-login{align-items:center;justify-content:center;padding:24px;}
-.login-card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:20px;
-  padding:40px 32px;
-  max-width:400px;
-  width:100%;
-  text-align:center;
-}
+.login-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:40px 32px;max-width:400px;width:100%;text-align:center;}
 .login-card h1{font-size:22px;margin-bottom:6px;}
 .login-card p{color:var(--muted);font-size:14px;margin-bottom:28px;}
-.login-card input{
-  width:100%;
-  padding:12px 16px;
-  background:#1a1a2e;
-  border:1px solid var(--border);
-  border-radius:10px;
-  color:#fff;
-  font-size:16px;
-  margin-bottom:16px;
-  outline:none;
-}
+.login-card input{width:100%;padding:12px 16px;background:#1a1a2e;border:1px solid var(--border);border-radius:10px;color:#fff;font-size:16px;margin-bottom:16px;outline:none;}
 .login-card input:focus{border-color:#4444aa;}
-.btn-primary{
-  width:100%;
-  padding:13px;
-  background:linear-gradient(135deg,#4444aa,#6644cc);
-  border:none;
-  border-radius:10px;
-  color:#fff;
-  font-size:16px;
-  font-weight:bold;
-  cursor:pointer;
-  transition:opacity 0.2s;
-}
+.btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,#4444aa,#6644cc);border:none;border-radius:10px;color:#fff;font-size:16px;font-weight:bold;cursor:pointer;transition:opacity 0.2s;}
 .btn-primary:hover{opacity:0.85;}
-.btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
-.spotify-btn{
-  width:100%;
-  padding:13px;
-  background:#1DB954;
-  border:none;
-  border-radius:10px;
-  color:#fff;
-  font-size:15px;
-  font-weight:bold;
-  cursor:pointer;
-  margin-top:10px;
-  transition:opacity 0.2s;
-}
+.spotify-btn{width:100%;padding:13px;background:#1DB954;border:none;border-radius:10px;color:#fff;font-size:15px;font-weight:bold;cursor:pointer;margin-top:10px;transition:opacity 0.2s;}
 .spotify-btn:hover{opacity:0.85;}
-.divider{
-  display:flex;align-items:center;gap:10px;
-  margin:18px 0;color:var(--muted);font-size:13px;
-}
-.divider::before,.divider::after{
-  content:'';flex:1;border-top:1px solid var(--border);
-}
-.step-indicator{
-  display:flex;gap:8px;justify-content:center;margin-bottom:24px;
-}
-.step{
-  width:8px;height:8px;border-radius:50%;
-  background:var(--border);transition:background 0.3s;
-}
+.divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:13px;}
+.divider::before,.divider::after{content:'';flex:1;border-top:1px solid var(--border);}
+.step-indicator{display:flex;gap:8px;justify-content:center;margin-bottom:24px;}
+.step{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background 0.3s;}
 .step.active{background:#6644cc;}
 .step.done{background:#1DB954;}
 
-/* ── Main App Page ───────────────────────────────────── */
 #page-app{flex-direction:column;}
-header{
-  background:var(--card);
-  border-bottom:1px solid var(--border);
-  padding:12px 16px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
+header{background:var(--card);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
 header h1{font-size:15px;color:var(--muted);}
 header h1 span{color:#fff;font-weight:bold;}
 .header-right{display:flex;gap:8px;align-items:center;}
-.user-pill{
-  background:var(--border);
-  border-radius:20px;
-  padding:6px 12px;
-  font-size:13px;
-  cursor:pointer;
-}
-.icon-btn{
-  background:var(--border);
-  border:none;border-radius:8px;
-  padding:7px 10px;
-  color:#fff;font-size:16px;
-  cursor:pointer;
-}
+.user-pill{background:var(--border);border-radius:20px;padding:6px 12px;font-size:13px;cursor:pointer;}
+.icon-btn{background:var(--border);border:none;border-radius:8px;padding:7px 10px;color:#fff;font-size:16px;cursor:pointer;}
 .icon-btn:hover{background:#2a2a3e;}
+.app-body{display:flex;flex-wrap:wrap;gap:14px;padding:14px;flex:1;justify-content:center;}
 
-.app-body{
-  display:flex;
-  flex-wrap:wrap;
-  gap:14px;
-  padding:14px;
-  flex:1;
-  justify-content:center;
-}
-
-/* ── Camera ──────────────────────────────────────────── */
-.camera-wrap{
-  position:relative;
-  border-radius:14px;
-  overflow:hidden;
-  border:2px solid var(--border);
-  flex:1;min-width:280px;max-width:560px;
-  background:#000;
-}
+.camera-wrap{position:relative;border-radius:14px;overflow:hidden;border:2px solid var(--border);flex:1;min-width:280px;max-width:560px;background:#000;}
 #video{width:100%;display:block;transform:scaleX(-1);}
-#overlay{
-  position:absolute;top:0;left:0;
-  width:100%;height:100%;
-  pointer-events:none;transform:scaleX(-1);
-}
-.emotion-bar{
-  position:absolute;bottom:0;left:0;right:0;
-  background:rgba(0,0,0,0.75);
-  backdrop-filter:blur(4px);
-  padding:10px 14px;
-  display:flex;align-items:center;gap:10px;
-}
+#overlay{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;}
+.emotion-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);padding:10px 14px;display:flex;align-items:center;gap:10px;}
 #emoji-display{font-size:30px;transition:all 0.5s;}
-#emotion-label{
-  font-size:18px;font-weight:bold;
-  text-transform:uppercase;letter-spacing:2px;
-  transition:color 0.5s;
-}
-.conf-pill{
-  margin-left:auto;
-  background:rgba(255,255,255,0.1);
-  padding:4px 10px;border-radius:12px;
-  font-size:12px;
-}
-
-/* Loading overlay */
-#loading-overlay{
-  position:absolute;top:0;left:0;right:0;bottom:0;
-  background:#000;
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;gap:12px;
-  z-index:10;
-}
-.spinner{
-  width:36px;height:36px;
-  border:3px solid #222;
-  border-top-color:#6644cc;
-  border-radius:50%;
-  animation:spin 0.8s linear infinite;
-}
+#emotion-label{font-size:18px;font-weight:bold;text-transform:uppercase;letter-spacing:2px;transition:color 0.5s;}
+.conf-pill{margin-left:auto;background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:12px;font-size:12px;}
+#loading-overlay{position:absolute;top:0;left:0;right:0;bottom:0;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:10;}
+.spinner{width:36px;height:36px;border:3px solid #222;border-top-color:#6644cc;border-radius:50%;animation:spin 0.8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 #loading-text{color:var(--muted);font-size:14px;}
 
-/* ── Right Panel ─────────────────────────────────────── */
-.panel{
-  display:flex;flex-direction:column;gap:12px;
-  flex:1;min-width:260px;max-width:360px;
-}
-.card{
-  background:var(--card);
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:16px;
-}
-.card-title{
-  font-size:10px;text-transform:uppercase;
-  letter-spacing:2px;color:var(--muted);
-  margin-bottom:12px;
-}
-
-/* Now Playing */
-#track-name{
-  font-size:15px;font-weight:bold;
-  white-space:nowrap;overflow:hidden;
-  text-overflow:ellipsis;
-}
+.panel{display:flex;flex-direction:column;gap:12px;flex:1;min-width:260px;max-width:360px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.card-title{font-size:10px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:12px;}
+#track-name{font-size:15px;font-weight:bold;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 #track-artist{font-size:13px;color:var(--muted);margin-top:3px;}
 .controls{display:flex;gap:8px;margin-top:12px;}
-.ctrl-btn{
-  flex:1;padding:10px;
-  background:#1a1a2e;border:none;
-  border-radius:8px;color:#fff;
-  font-size:18px;cursor:pointer;
-  transition:background 0.2s;
-}
+.ctrl-btn{flex:1;padding:10px;background:#1a1a2e;border:none;border-radius:8px;color:#fff;font-size:18px;cursor:pointer;transition:background 0.2s;}
 .ctrl-btn:hover{background:#2a2a3e;}
-
-/* Confidence */
-.conf-track{
-  background:#1a1a2e;border-radius:6px;
-  height:8px;overflow:hidden;margin-bottom:6px;
-}
-.conf-fill{
-  height:100%;border-radius:6px;
-  transition:width 0.6s,background 0.6s;
-  background:#00DC64;
-}
+.conf-track{background:#1a1a2e;border-radius:6px;height:8px;overflow:hidden;margin-bottom:6px;}
+.conf-fill{height:100%;border-radius:6px;transition:width 0.6s,background 0.6s;background:#00DC64;}
 .conf-note{font-size:11px;color:var(--muted);}
-
-/* Safety */
-.safety-badge{
-  text-align:center;padding:10px;
-  border-radius:8px;font-weight:bold;
-  font-size:13px;margin-top:8px;
-  transition:all 0.5s;
-}
-
-/* Log */
+.safety-badge{text-align:center;padding:10px;border-radius:8px;font-weight:bold;font-size:13px;margin-top:8px;transition:all 0.5s;}
 .log-list{max-height:180px;overflow-y:auto;}
-.log-row{
-  display:flex;justify-content:space-between;
-  padding:6px 0;border-bottom:1px solid var(--border);
-  font-size:12px;
-}
+.log-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
 .log-row:last-child{border:none;}
 .log-em{font-weight:bold;text-transform:capitalize;}
 .log-t{color:var(--muted);}
 
-/* ── Stats Page ──────────────────────────────────────── */
-#page-stats{padding:16px;}
-.stats-header{
-  display:flex;align-items:center;gap:12px;
-  margin-bottom:16px;
-}
-.back-btn{
-  background:var(--border);border:none;
-  border-radius:8px;padding:8px 12px;
-  color:#fff;font-size:14px;cursor:pointer;
-}
+#page-stats{padding:16px;overflow-y:auto;}
+.stats-header{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+.back-btn{background:var(--border);border:none;border-radius:8px;padding:8px 12px;color:#fff;font-size:14px;cursor:pointer;}
 .stats-header h2{font-size:18px;font-weight:bold;}
-.toggle-row{
-  display:flex;gap:8px;margin-bottom:16px;
-}
-.toggle-btn{
-  padding:8px 16px;border:1px solid var(--border);
-  border-radius:20px;background:transparent;
-  color:var(--muted);font-size:13px;cursor:pointer;
-  transition:all 0.2s;
-}
-.toggle-btn.active{
-  background:#6644cc;border-color:#6644cc;color:#fff;
-}
+.toggle-row{display:flex;gap:8px;margin-bottom:16px;}
+.toggle-btn{padding:8px 16px;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;transition:all 0.2s;}
+.toggle-btn.active{background:#6644cc;border-color:#6644cc;color:#fff;}
 .download-row{display:flex;gap:8px;margin-bottom:16px;}
-.dl-btn{
-  flex:1;padding:10px;
-  background:var(--card);border:1px solid var(--border);
-  border-radius:10px;color:#fff;font-size:13px;
-  cursor:pointer;transition:background 0.2s;
-}
+.dl-btn{flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:#fff;font-size:13px;cursor:pointer;transition:background 0.2s;}
 .dl-btn:hover{background:#1a1a2e;}
-.stats-grid{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
-  gap:10px;margin-bottom:16px;
-}
-.stat-card{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:12px;padding:14px;text-align:center;
-}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;}
 .stat-num{font-size:28px;font-weight:bold;}
 .stat-label{font-size:11px;color:var(--muted);margin-top:4px;}
 .bar-chart{display:flex;flex-direction:column;gap:8px;}
@@ -303,21 +92,13 @@ header h1 span{color:#fff;font-weight:bold;}
 .bar-track{flex:1;background:#1a1a2e;border-radius:4px;height:20px;overflow:hidden;}
 .bar-fill{height:100%;border-radius:4px;transition:width 0.6s;}
 .bar-val{width:36px;font-size:12px;color:var(--muted);}
-.danger-summary{
-  background:var(--card);border:1px solid var(--border);
-  border-radius:12px;padding:16px;margin-top:12px;
-  text-align:center;
-}
-
-/* ── Responsive ──────────────────────────────────────── */
-@media(max-width:600px){
-  .panel{max-width:100%;}
-  .camera-wrap{max-width:100%;}
-}
+.danger-summary{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-top:12px;text-align:center;}
+@media(max-width:600px){.panel{max-width:100%;}.camera-wrap{max-width:100%;}}
 </style>
 </head>
 <body>
 
+<!-- LOGIN -->
 <div id="page-login" class="page active">
   <div class="login-card">
     <div class="step-indicator">
@@ -337,18 +118,21 @@ header h1 span{color:#fff;font-weight:bold;}
       <br>
       <button class="spotify-btn" onclick="spotifyLogin()">Connect Spotify Premium</button>
       <div class="divider">or</div>
-      <button class="btn-primary" style="background:#1a1a2e;border:1px solid var(--border);" onclick="skipSpotify()">Skip — use without music</button>
+      <button class="btn-primary" style="background:#1a1a2e;border:1px solid var(--border);" onclick="skipSpotify()">
+        Skip — use without music
+      </button>
     </div>
   </div>
 </div>
 
+<!-- APP -->
 <div id="page-app" class="page">
   <header>
     <h1>Team ASTROPHILE — <span>Emotion Player</span></h1>
     <div class="header-right">
       <div class="user-pill" id="user-pill">👤 —</div>
       <button class="icon-btn" onclick="showStats()">📊</button>
-      <button class="icon-btn" onclick="logout()" title="Logout">⚙️</button>
+      <button class="icon-btn" onclick="logout()">⚙️</button>
     </div>
   </header>
   <div class="app-body">
@@ -378,9 +162,7 @@ header h1 span{color:#fff;font-weight:bold;}
       </div>
       <div class="card">
         <div class="card-title">Detection Confidence</div>
-        <div class="conf-track">
-          <div class="conf-fill" id="conf-bar" style="width:0%"></div>
-        </div>
+        <div class="conf-track"><div class="conf-fill" id="conf-bar" style="width:0%"></div></div>
         <div class="conf-note">Song changes only above 90% confidence</div>
         <div class="safety-badge" id="safety-badge" style="background:#0a2a0a;color:#44ff88;">✅ Safe Driving</div>
       </div>
@@ -394,6 +176,7 @@ header h1 span{color:#fff;font-weight:bold;}
   </div>
 </div>
 
+<!-- STATS -->
 <div id="page-stats" class="page">
   <div class="stats-header">
     <button class="back-btn" onclick="showApp()">← Back</button>
@@ -416,325 +199,334 @@ header h1 span{color:#fff;font-weight:bold;}
 </div>
 
 <script src="https://sdk.scdn.co/spotify-player.js"></script>
-
 <script>
-const SPOTIFY_CLIENT_ID  = 'e4f3aea4d07a4685a525333a877c697a';
-const SPOTIFY_REDIRECT   = 'https://edu6tron.github.io/moody-oody/';
-const SPOTIFY_SCOPES     = ['streaming','user-read-email','user-read-private','user-modify-playback-state','user-read-playback-state'].join(' ');
+const SPOTIFY_CLIENT_ID = 'e4f3aea4d07a4685a525333a877c697a';
+const SPOTIFY_REDIRECT  = 'https://edu6tron.github.io/moody-oody/';
+const SPOTIFY_SCOPES    = 'streaming user-read-email user-read-private user-modify-playback-state user-read-playback-state';
+const MODEL_URL         = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
 
-const EMOTION_MAP = { neutral: 'calm', happy: 'happy', angry: 'angry', fearful: 'fear', disgusted: 'angry', sad: 'stressed', surprised: 'focused' };
-const EMOJIS = { calm:'😌', happy:'😄', angry:'😠', stressed:'😰', drowsy:'😴', fear:'😱', focused:'🧠' };
-const COLORS = { calm:'#8BC4A8', happy:'#FFD700', angry:'#FF3333', stressed:'#FF6400', drowsy:'#9B5DE5', fear:'#CC44FF', focused:'#00C8FF' };
-const SEARCH_QUERIES = { calm: 'Arijit Singh hindi slow romantic', happy: 'Pritam bollywood upbeat dance happy', angry: 'Mohit Chauhan soft hindi calm soothing', stressed:'Shreya Ghoshal soft peaceful hindi slow', drowsy: 'Badshah hindi energetic fast dance', fear: 'Arijit Singh gentle soft slow hindi', focused: 'bollywood instrumental background hindi' };
+const EMOJIS = {calm:'😌',happy:'😄',angry:'😠',stressed:'😰',drowsy:'😴',fear:'😱',focused:'🧠'};
+const COLORS = {calm:'#8BC4A8',happy:'#FFD700',angry:'#FF3333',stressed:'#FF6400',drowsy:'#9B5DE5',fear:'#CC44FF',focused:'#00C8FF'};
+const SEARCH_QUERIES = {
+  calm:    'Arijit Singh hindi slow romantic',
+  happy:   'Pritam bollywood upbeat dance happy',
+  angry:   'Mohit Chauhan soft hindi calm soothing',
+  stressed:'Shreya Ghoshal soft peaceful hindi slow',
+  drowsy:  'Badshah hindi energetic fast dance',
+  fear:    'Arijit Singh gentle soft slow hindi',
+  focused: 'bollywood instrumental background hindi',
+};
 const DANGER_EMOTIONS = ['angry','drowsy','fear','stressed'];
+const INDIAN_ARTISTS  = ['Arijit Singh','Pritam','Mohit Chauhan','Shreya Ghoshal','Badshah','Neha Kakkar','Jubin Nautiyal','Atif Aslam','AR Rahman','Vishal Dadlani','Sonu Nigam','KK','Udit Narayan','Alka Yagnik','Kumar Sanu','Sunidhi Chauhan'];
 const COOLDOWN_MS     = 15000;
 const CONF_THRESHOLD  = 90;
+const BLEND           = 0.1;
 
-let userName = '';
-let spotifyToken = null;
-let spotifyPlayer = null;
-let spotifyDeviceId = null;
-let currentEmotion = 'calm';
-let currentConf = 0;
-let lastDetected = '';
-let lastTriggerTime = 0;
-let sessionStart = Date.now();
-let sessionLogs = [];
-let statsMode = 'session';
-let detectionActive = false;
+let userName='', spotifyToken=null, spotifyPlayer=null, spotifyDeviceId=null;
+let lastDetected='', lastTriggerTime=0, sessionStart=Date.now();
+let sessionLogs=[], statsMode='session', detectionActive=false;
+let smoothScores={neutral:0,happy:0,angry:0,fearful:0,disgusted:0,sad:0,surprised:0};
 
-let smoothScores = { neutral:0, happy:0, angry:0, fearful:0, disgusted:0, sad:0, surprised:0 };
-const BLEND = 0.1;
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');}
+function showApp(){showPage('page-app');updateLogUI();}
+function showStats(){showPage('page-stats');renderStats();}
 
-function showPage(id) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-}
-function showApp() { showPage('page-app'); updateLogUI(); }
-function showStats() { showPage('page-stats'); renderStats(); }
-
-function saveName() {
-  const val = document.getElementById('name-input').value.trim();
-  if (!val) return;
-  userName = val;
-  localStorage.setItem('emp_name', userName);
-  document.getElementById('setup-step1').style.display = 'none';
-  document.getElementById('setup-step2').style.display = 'block';
+function saveName(){
+  const val=document.getElementById('name-input').value.trim();
+  if(!val)return;
+  userName=val;
+  localStorage.setItem('emp_name',userName);
+  document.getElementById('setup-step1').style.display='none';
+  document.getElementById('setup-step2').style.display='block';
   document.getElementById('step1').classList.replace('active','done');
   document.getElementById('step2').classList.add('active');
 }
 
-function spotifyLogin() {
-  const params = new URLSearchParams({ client_id: SPOTIFY_CLIENT_ID, response_type: 'token', redirect_uri: SPOTIFY_REDIRECT, scope: SPOTIFY_SCOPES });
-  window.location.href = 'https://accounts.spotify.com/authorize?' + params.toString();
+function spotifyLogin(){
+  const p=new URLSearchParams({client_id:SPOTIFY_CLIENT_ID,response_type:'token',redirect_uri:SPOTIFY_REDIRECT,scope:SPOTIFY_SCOPES});
+  window.location.href='https://accounts.spotify.com/authorize?'+p.toString();
 }
 
-function skipSpotify() { localStorage.setItem('emp_skip_spotify', '1'); startApp(); }
-function logout() { if (!confirm('Reset profile and logout?')) return; localStorage.removeItem('emp_name'); localStorage.removeItem('emp_skip_spotify'); localStorage.removeItem('emp_token'); location.reload(); }
+function skipSpotify(){localStorage.setItem('emp_skip_spotify','1');startApp();}
 
-function init() {
-  const hash = new URLSearchParams(window.location.hash.slice(1));
-  const token = hash.get('access_token');
-  if (token) {
-    spotifyToken = token;
-    localStorage.setItem('emp_token', token);
-    window.history.replaceState({}, '', window.location.pathname);
+function logout(){
+  if(!confirm('Reset profile and logout?'))return;
+  ['emp_name','emp_skip_spotify','emp_token'].forEach(k=>localStorage.removeItem(k));
+  location.reload();
+}
+
+function init(){
+  const hash=new URLSearchParams(window.location.hash.slice(1));
+  const token=hash.get('access_token');
+  if(token){
+    spotifyToken=token;
+    localStorage.setItem('emp_token',token);
+    window.history.replaceState({},'',window.location.pathname);
   } else {
-    spotifyToken = localStorage.getItem('emp_token');
+    spotifyToken=localStorage.getItem('emp_token');
   }
-  userName = localStorage.getItem('emp_name');
-  if (!userName) { showPage('page-login'); return; }
+  userName=localStorage.getItem('emp_name');
+  if(!userName){showPage('page-login');return;}
   startApp();
 }
 
-function startApp() {
+function startApp(){
   showPage('page-app');
-  document.getElementById('user-pill').textContent = '👤 ' + userName;
-  sessionStart = Date.now();
-  sessionLogs = [];
+  document.getElementById('user-pill').textContent='👤 '+userName;
+  sessionStart=Date.now();
+  sessionLogs=[];
   loadModelsAndStart();
-  if (spotifyToken) initSpotify();
+  if(spotifyToken)initSpotify();
 }
 
-const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model';
-
-async function loadModelsAndStart() {
-  const txt = document.getElementById('loading-text');
-  try {
-    txt.textContent = 'Loading face detection model...';
+async function loadModelsAndStart(){
+  const txt=document.getElementById('loading-text');
+  try{
+    txt.textContent='Loading face detection model...';
     await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-    txt.textContent = 'Loading expression model...';
+    txt.textContent='Loading expression model...';
     await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
-    txt.textContent = 'Starting camera...';
+    txt.textContent='Starting camera...';
     await startCamera();
-    document.getElementById('loading-overlay').style.display = 'none';
-    detectionActive = true;
+    document.getElementById('loading-overlay').style.display='none';
+    detectionActive=true;
     detectLoop();
-  } catch(e) {
-    txt.textContent = 'Error: ' + e.message;
+  } catch(e){
+    txt.textContent='Error: '+e.message;
     console.error(e);
   }
 }
 
-async function startCamera() {
-  const video  = document.getElementById('video');
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode:'user', width:640, height:480 },
-    audio: false
-  });
-  video.srcObject = stream;
-  await new Promise(r => video.onloadedmetadata = r);
-
-  // Match canvas EXACTLY to video display size — not stream size
-  const overlay   = document.getElementById('overlay');
-  const resizeObs = new ResizeObserver(() => {
-    overlay.width  = video.clientWidth;
-    overlay.height = video.clientHeight;
-  });
-  resizeObs.observe(video);
-  overlay.width  = video.clientWidth;
-  overlay.height = video.clientHeight;
-    };
-  });
+async function startCamera(){
+  const video=document.getElementById('video');
+  const overlay=document.getElementById('overlay');
+  const stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:640,height:480},audio:false});
+  video.srcObject=stream;
+  await new Promise(r=>{video.onloadedmetadata=r;});
+  function syncSize(){
+    overlay.width=video.clientWidth;
+    overlay.height=video.clientHeight;
+  }
+  syncSize();
+  new ResizeObserver(syncSize).observe(video);
 }
 
-async function detectLoop() {
-  if (!detectionActive) return;
-  const video = document.getElementById('video');
-  const overlay = document.getElementById('overlay');
-  const ctx = overlay.getContext('2d');
-
-  if (video.paused || video.ended) {
-    requestAnimationFrame(detectLoop);
-    return;
-  }
-
-  try {
-    const det = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
-    ctx.clearRect(0, 0, overlay.width, overlay.height);
-
-    if (det) {
-      const raw = det.expressions;
-      for (const k of Object.keys(smoothScores)) {
-        smoothScores[k] += ((raw[k] || 0) * 100 - smoothScores[k]) * BLEND;
+async function detectLoop(){
+  if(!detectionActive)return;
+  const video=document.getElementById('video');
+  const overlay=document.getElementById('overlay');
+  const ctx=overlay.getContext('2d');
+  if(!video.paused&&!video.ended){
+    try{
+      const det=await faceapi.detectSingleFace(video,new faceapi.TinyFaceDetectorOptions()).withFaceExpressions();
+      ctx.clearRect(0,0,overlay.width,overlay.height);
+      if(det){
+        const raw=det.expressions;
+        for(const k of Object.keys(smoothScores)){
+          smoothScores[k]+=((raw[k]||0)*100-smoothScores[k])*BLEND;
+        }
+        const {emotion,confidence}=mapEmotion(smoothScores);
+        updateEmotionUI(emotion,confidence);
+        drawFaceBox(ctx,det.detection.box,emotion,overlay,video);
+        maybeTrigger(emotion,confidence);
+      } else {
+        updateEmotionUI('scanning',0);
       }
-      const { emotion, confidence } = mapEmotion(smoothScores);
-      currentEmotion = emotion;
-      currentConf = confidence;
-      updateEmotionUI(emotion, confidence);
-      drawFaceBox(ctx, det.detection.box, emotion);
-      maybeTrigger(emotion, confidence);
-    } else {
-      updateEmotionUI('scanning', 0);
-    }
-  } catch(e) { console.error(e); }
-  
-  setTimeout(() => requestAnimationFrame(detectLoop), 100);
+    } catch(e){console.error(e);}
+  }
+  setTimeout(()=>requestAnimationFrame(detectLoop),100);
 }
 
-function mapEmotion(s) {
-  const h=s.happy, sa=s.sad, a=s.angry, f=s.fearful, d=s.disgusted, su=s.surprised, n=s.neutral;
-  const mx = Math.max(h,sa,a,f,d,su,n);
-  if (mx < 35 && n < 40) return {emotion:'drowsy', confidence: mx};
-  if (f >= 55 && a < 25 && sa < 25) return {emotion:'fear', confidence: f};
-  if (a >= 55) return {emotion:'angry', confidence: a};
-  if (f >= 30 && sa >= 20) return {emotion:'stressed', confidence: (f+sa)/2};
-  if (h >= 55) return {emotion:'happy', confidence: h};
-  if (n >= 40 && n <= 75) return {emotion:'focused', confidence: n};
-  return {emotion:'calm', confidence: n};
+function mapEmotion(s){
+  const h=s.happy,sa=s.sad,a=s.angry,f=s.fearful,d=s.disgusted,su=s.surprised,n=s.neutral;
+  const mx=Math.max(h,sa,a,f,d,su,n);
+  if(mx<35&&n<40)             return{emotion:'drowsy',  confidence:mx};
+  if(f>=55&&a<25&&sa<25)      return{emotion:'fear',    confidence:f};
+  if(a>=55)                   return{emotion:'angry',   confidence:a};
+  if(a>=35&&d>=30)            return{emotion:'angry',   confidence:(a+d)/2};
+  if(f>=30&&sa>=20)           return{emotion:'stressed',confidence:(f+sa)/2};
+  if(f>=40&&f<55)             return{emotion:'stressed',confidence:f};
+  if(sa>=45&&a<20)            return{emotion:'stressed',confidence:sa};
+  if(h>=55&&a<15&&sa<15)      return{emotion:'happy',   confidence:h};
+  if(n>=40&&n<=75&&h<25&&a<20&&f<20) return{emotion:'focused',confidence:n};
+  if(n>=60)                   return{emotion:'calm',    confidence:n};
+  return{emotion:'calm',confidence:n};
 }
 
-function drawFaceBox(ctx, box, emotion) {
-  const video   = document.getElementById('video');
-  const overlay = document.getElementById('overlay');
-
-  // Scale from stream size to display size
-  const scaleX  = overlay.width  / video.videoWidth;
-  const scaleY  = overlay.height / video.videoHeight;
-
-  const color   = COLORS[emotion] || '#ffffff';
-  const emoji   = EMOJIS[emotion] || '🔍';
-
-  // box coords are in stream space → scale to display space
-  const bx = box.x * scaleX;
-  const by = box.y * scaleY;
-  const bw = box.width  * scaleX;
-  const bh = box.height * scaleY;
-
-  // Mirror X because video is flipped with CSS scaleX(-1)
-  const mx = overlay.width - bx - bw;
-
-  // Draw rectangle
-  ctx.strokeStyle = color;
-  ctx.lineWidth   = 2.5;
-  ctx.strokeRect(mx, by, bw, bh);
-
-  // Glow effect — second larger rect
-  ctx.strokeStyle = color + '44';
-  ctx.lineWidth   = 6;
-  ctx.strokeRect(mx - 3, by - 3, bw + 6, bh + 6);
-
-  // Emoji above the box
-  ctx.font      = '28px serif';
-  ctx.textAlign = 'center';
-  const ey = Math.max(30, by - 6);
-  ctx.fillText(emoji, mx + bw / 2, ey);
+function drawFaceBox(ctx,box,emotion,overlay,video){
+  const scaleX=overlay.width/video.videoWidth;
+  const scaleY=overlay.height/video.videoHeight;
+  const color=COLORS[emotion]||'#ffffff';
+  const emoji=EMOJIS[emotion]||'🔍';
+  const bx=box.x*scaleX, by=box.y*scaleY;
+  const bw=box.width*scaleX, bh=box.height*scaleY;
+  const mx=overlay.width-bx-bw;
+  ctx.strokeStyle=color+'44'; ctx.lineWidth=6;
+  ctx.strokeRect(mx-3,by-3,bw+6,bh+6);
+  ctx.strokeStyle=color; ctx.lineWidth=2.5;
+  ctx.strokeRect(mx,by,bw,bh);
+  ctx.font='28px serif'; ctx.textAlign='center';
+  ctx.fillText(emoji,mx+bw/2,Math.max(30,by-6));
 }
 
-function updateEmotionUI(emotion, conf) {
-  const color = COLORS[emotion] || '#ffffff';
-  const label = emotion === 'scanning' ? 'Scanning...' : emotion.toUpperCase();
-  document.getElementById('emoji-display').textContent = EMOJIS[emotion] || '🔍';
-  document.getElementById('emotion-label').textContent = label;
-  document.getElementById('emotion-label').style.color = color;
-  document.getElementById('conf-text').textContent = Math.round(conf) + '%';
-  const bar = document.getElementById('conf-bar');
-  bar.style.width = Math.round(conf) + '%';
-  bar.style.background = conf >= CONF_THRESHOLD ? '#00DC64' : '#FF6400';
-  const badge = document.getElementById('safety-badge');
-  if (DANGER_EMOTIONS.includes(emotion)) {
-    badge.textContent = '⚠️ DANGER — ' + emotion.toUpperCase();
-    badge.style.background = '#2a0a0a';
-    badge.style.color = '#ff4444';
+function updateEmotionUI(emotion,conf){
+  const color=COLORS[emotion]||'#ffffff';
+  document.getElementById('emoji-display').textContent=EMOJIS[emotion]||'🔍';
+  document.getElementById('emotion-label').textContent=emotion==='scanning'?'Scanning...':emotion.toUpperCase();
+  document.getElementById('emotion-label').style.color=color;
+  document.getElementById('conf-text').textContent=Math.round(conf)+'%';
+  const bar=document.getElementById('conf-bar');
+  bar.style.width=Math.round(conf)+'%';
+  bar.style.background=conf>=CONF_THRESHOLD?'#00DC64':'#FF6400';
+  const badge=document.getElementById('safety-badge');
+  if(DANGER_EMOTIONS.includes(emotion)){
+    badge.textContent='⚠️ DANGER — '+emotion.toUpperCase();
+    badge.style.background='#2a0a0a'; badge.style.color='#ff4444';
   } else {
-    badge.textContent = '✅ Safe Driving';
-    badge.style.background = '#0a2a0a';
-    badge.style.color = '#44ff88';
+    badge.textContent='✅ Safe Driving';
+    badge.style.background='#0a2a0a'; badge.style.color='#44ff88';
   }
 }
 
-function maybeTrigger(emotion, conf) {
-  const now = Date.now();
-  if (emotion !== lastDetected && (now - lastTriggerTime) > COOLDOWN_MS && conf >= CONF_THRESHOLD) {
-    logEmotion(emotion, conf);
-    if (spotifyToken && spotifyDeviceId) playForEmotion(emotion);
-    lastDetected = emotion;
-    lastTriggerTime = now;
+function maybeTrigger(emotion,conf){
+  const now=Date.now();
+  if(emotion!==lastDetected&&(now-lastTriggerTime)>COOLDOWN_MS&&conf>=CONF_THRESHOLD){
+    logEmotion(emotion,conf);
+    if(spotifyToken&&spotifyDeviceId)playForEmotion(emotion);
+    lastDetected=emotion; lastTriggerTime=now;
   }
 }
 
-function logEmotion(emotion, confidence) {
-  const entry = { timestamp: new Date().toISOString(), emotion: emotion, confidence: parseFloat(confidence.toFixed(2)), session: sessionStart };
+function logEmotion(emotion,confidence){
+  const entry={timestamp:new Date().toISOString(),emotion,confidence:parseFloat(confidence.toFixed(2)),session:sessionStart};
   sessionLogs.push(entry);
   updateLogUI();
-  const all = getAllLogs();
+  const all=getAllLogs();
   all.push(entry);
-  localStorage.setItem('emp_logs', JSON.stringify(all));
+  localStorage.setItem('emp_logs',JSON.stringify(all));
+}
+function getAllLogs(){try{return JSON.parse(localStorage.getItem('emp_logs')||'[]');}catch{return[];}}
+function getSessionLogs(){return sessionLogs;}
+
+function updateLogUI(){
+  const logs=[...sessionLogs].reverse().slice(0,15);
+  const el=document.getElementById('log-list');
+  if(!logs.length){el.innerHTML='<div class="log-row"><span style="color:var(--muted)">No detections yet</span></div>';return;}
+  el.innerHTML=logs.map(l=>`<div class="log-row"><span class="log-em" style="color:${COLORS[l.emotion]||'#fff'}">${l.emotion}</span><span>${l.confidence.toFixed(1)}%</span><span class="log-t">${new Date(l.timestamp).toLocaleTimeString()}</span></div>`).join('');
 }
 
-function getAllLogs() { try { return JSON.parse(localStorage.getItem('emp_logs') || '[]'); } catch { return []; } }
-function getSessionLogs() { return sessionLogs; }
-
-function updateLogUI() {
-  const logs = [...sessionLogs].reverse().slice(0, 15);
-  const el = document.getElementById('log-list');
-  if (!logs.length) { el.innerHTML = '<div class="log-row"><span style="color:var(--muted)">No detections yet</span></div>'; return; }
-  el.innerHTML = logs.map(l => `<div class="log-row"><span class="log-em" style="color:${COLORS[l.emotion]||'#fff'}">${l.emotion}</span><span>${l.confidence.toFixed(1)}%</span><span class="log-t">${new Date(l.timestamp).toLocaleTimeString()}</span></div>`).join('');
-}
-
-window.onSpotifyWebPlaybackSDKReady = () => {
-  if (!spotifyToken) return;
-  spotifyPlayer = new Spotify.Player({ name: 'Emotion Music Player', getOAuthToken: cb => cb(spotifyToken), volume: 0.8 });
-  spotifyPlayer.addListener('ready', ({ device_id }) => { spotifyDeviceId = device_id; });
+window.onSpotifyWebPlaybackSDKReady=()=>{
+  if(!spotifyToken)return;
+  spotifyPlayer=new Spotify.Player({name:'Emotion Music Player',getOAuthToken:cb=>cb(spotifyToken),volume:0.8});
+  spotifyPlayer.addListener('ready',({device_id})=>{spotifyDeviceId=device_id;console.log('[Spotify] Ready:',device_id);});
+  spotifyPlayer.addListener('not_ready',()=>{spotifyDeviceId=null;});
   spotifyPlayer.connect();
 };
+function initSpotify(){}
 
-function initSpotify() {}
-
-async function playForEmotion(emotion) {
-  const query = SEARCH_QUERIES[emotion] || 'hindi calm';
-  try {
-    const res = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10&market=IN`, { headers: { Authorization: 'Bearer ' + spotifyToken } });
-    const data = await res.json();
-    const tracks = data.tracks?.items || [];
-    if (!tracks.length) return;
-    const track = tracks[Math.floor(Math.random() * tracks.length)];
-    document.getElementById('track-name').textContent = track.name;
-    document.getElementById('track-artist').textContent = track.artists[0].name;
-    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${spotifyDeviceId}`, { method: 'PUT', headers: { Authorization: 'Bearer ' + spotifyToken, 'Content-Type': 'application/json' }, body: JSON.stringify({ uris: [track.uri] }) });
-  } catch(e) { console.error(e); }
+async function playForEmotion(emotion){
+  const query=SEARCH_QUERIES[emotion]||'hindi calm';
+  try{
+    const res=await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10&market=IN`,{headers:{Authorization:'Bearer '+spotifyToken}});
+    const data=await res.json();
+    const tracks=data.tracks?.items||[];
+    if(!tracks.length)return;
+    const filtered=tracks.filter(t=>t.artists.some(a=>INDIAN_ARTISTS.includes(a.name)));
+    const pool=filtered.length?filtered:tracks;
+    const track=pool[Math.floor(Math.random()*pool.length)];
+    document.getElementById('track-name').textContent=track.name;
+    document.getElementById('track-artist').textContent=track.artists[0].name;
+    await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${spotifyDeviceId}`,{method:'PUT',headers:{Authorization:'Bearer '+spotifyToken,'Content-Type':'application/json'},body:JSON.stringify({uris:[track.uri]})});
+  } catch(e){console.error('[Spotify]',e);}
 }
 
-async function spotifyControl(action) {
-  if (!spotifyToken) return;
-  const map = { pause: ['pause', 'PUT'], next: ['next', 'POST'], prev: ['previous', 'POST'] };
-  const [path, method] = map[action];
-  await fetch(`https://api.spotify.com/v1/me/player/${path}`, { method, headers: { Authorization: 'Bearer ' + spotifyToken } });
+async function spotifyControl(action){
+  if(!spotifyToken)return;
+  const map={pause:['pause','PUT'],next:['next','POST'],prev:['previous','POST']};
+  const[path,method]=map[action]||[];
+  if(!path)return;
+  await fetch(`https://api.spotify.com/v1/me/player/${path}`,{method,headers:{Authorization:'Bearer '+spotifyToken}});
 }
 
-function switchStats(mode) { statsMode = mode; document.getElementById('btn-session').classList.toggle('active', mode === 'session'); document.getElementById('btn-alltime').classList.toggle('active', mode === 'alltime'); renderStats(); }
-
-function renderStats() {
-  const logs = statsMode === 'session' ? getSessionLogs() : getAllLogs();
-  const total = logs.length, danger = logs.filter(l => DANGER_EMOTIONS.includes(l.emotion)).length;
-  const pct = total ? ((danger/total)*100).toFixed(1) : 0, avgConf = total ? (logs.reduce((s,l)=>s+l.confidence,0)/total).toFixed(1) : 0;
-  document.getElementById('stats-grid').innerHTML = `<div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total Detections</div></div><div class="stat-card"><div class="stat-num" style="color:#ff4444">${danger}</div><div class="stat-label">Danger States</div></div><div class="stat-card"><div class="stat-num" style="color:#00DC64">${avgConf}%</div><div class="stat-label">Avg Confidence</div></div><div class="stat-card"><div class="stat-num">${pct}%</div><div class="stat-label">Risk %</div></div>`;
-  const counts = {}; logs.forEach(l => counts[l.emotion] = (counts[l.emotion]||0) + 1);
-  const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
-  const max = sorted[0]?.[1] || 1;
-  document.getElementById('bar-chart').innerHTML = sorted.map(([em,ct]) => `<div class="bar-row"><span class="bar-label">${em}</span><div class="bar-track"><div class="bar-fill" style="width:${(ct/max*100).toFixed(1)}%;background:${COLORS[em]||'#888'}"></div></div><span class="bar-val">${ct}</span></div>`).join('');
+function switchStats(mode){
+  statsMode=mode;
+  document.getElementById('btn-session').classList.toggle('active',mode==='session');
+  document.getElementById('btn-alltime').classList.toggle('active',mode==='alltime');
+  renderStats();
 }
 
-function downloadCSV() {
-  const logs = statsMode === 'session' ? getSessionLogs() : getAllLogs();
-  if (!logs.length) return;
-  const csv = "Timestamp,Emotion,Confidence\n" + logs.map(l => `${l.timestamp},${l.emotion},${l.confidence}`).join("\n");
-  const blob = new Blob([csv], {type:'text/csv'});
-  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `logs.csv`; a.click();
+function renderStats(){
+  const logs=statsMode==='session'?getSessionLogs():getAllLogs();
+  const total=logs.length,danger=logs.filter(l=>DANGER_EMOTIONS.includes(l.emotion)).length;
+  const pct=total?((danger/total)*100).toFixed(1):0;
+  const avgConf=total?(logs.reduce((s,l)=>s+l.confidence,0)/total).toFixed(1):0;
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-label">Total Detections</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#ff4444">${danger}</div><div class="stat-label">Danger States</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#00DC64">${avgConf}%</div><div class="stat-label">Avg Confidence</div></div>
+    <div class="stat-card"><div class="stat-num">${pct}%</div><div class="stat-label">Risk %</div></div>`;
+  const counts={};
+  logs.forEach(l=>counts[l.emotion]=(counts[l.emotion]||0)+1);
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  const max=sorted[0]?.[1]||1;
+  document.getElementById('bar-chart').innerHTML=sorted.map(([em,ct])=>`<div class="bar-row"><span class="bar-label">${em}</span><div class="bar-track"><div class="bar-fill" style="width:${(ct/max*100).toFixed(1)}%;background:${COLORS[em]||'#888'}"></div></div><span class="bar-val">${ct}</span></div>`).join('');
+  const safetyColor=pct>30?'#ff4444':pct>15?'#FF6400':'#44ff88';
+  const safetyText=pct>30?'⚠️ HIGH RISK SESSION':pct>15?'⚡ MODERATE RISK':'✅ SAFE SESSION';
+  document.getElementById('danger-summary').innerHTML=`<div style="font-size:18px;font-weight:bold;color:${safetyColor}">${safetyText}</div><div style="color:var(--muted);font-size:13px;margin-top:6px">${pct}% of detections were danger states</div>`;
 }
 
-function downloadPDF() {
-  const logs = statsMode === 'session' ? getSessionLogs() : getAllLogs();
-  if (!logs.length) return;
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.text("Emotion Report", 14, 20);
-  let y = 30;
-  logs.slice(-20).forEach(l => { doc.text(`${l.timestamp} - ${l.emotion} (${l.confidence}%)`, 14, y); y+=10; });
-  doc.save("report.pdf");
+function downloadCSV(){
+  const logs=statsMode==='session'?getSessionLogs():getAllLogs();
+  if(!logs.length){alert('No data yet.');return;}
+  const csv='Timestamp,Emotion,Confidence\n'+logs.map(l=>`${l.timestamp},${l.emotion},${l.confidence}`).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`emotion_log_${statsMode}_${Date.now()}.csv`;
+  a.click();
 }
 
-window.addEventListener('load', init);
+function downloadPDF(){
+  const logs=statsMode==='session'?getSessionLogs():getAllLogs();
+  if(!logs.length){alert('No data yet.');return;}
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF();
+  const total=logs.length,danger=logs.filter(l=>DANGER_EMOTIONS.includes(l.emotion)).length;
+  const pct=total?((danger/total)*100).toFixed(1):0;
+  const avgConf=total?(logs.reduce((s,l)=>s+l.confidence,0)/total).toFixed(1):0;
+  doc.setFillColor(10,10,18); doc.rect(0,0,210,297,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(18);
+  doc.text('Emotion Music Player',14,20);
+  doc.setFontSize(10); doc.setTextColor(150,150,180);
+  doc.text('Team ASTROPHILE — Driver Emotion Report',14,28);
+  doc.text('User: '+userName,14,35);
+  doc.text('Generated: '+new Date().toLocaleString(),14,41);
+  doc.text('Mode: '+(statsMode==='session'?'This Session':'All Time'),14,47);
+  doc.setFillColor(20,20,40); doc.rect(14,53,182,28,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(9);
+  doc.text('Total: '+total,20,62);
+  doc.text('Danger: '+danger+' ('+pct+'%)',70,62);
+  doc.text('Avg Confidence: '+avgConf+'%',140,62);
+  const st=pct>30?'HIGH RISK':pct>15?'MODERATE RISK':'SAFE SESSION';
+  doc.setFontSize(11); doc.setTextColor(pct>30?255:68,pct>30?68:200,100);
+  doc.text(st,20,74);
+  doc.setFillColor(30,30,60); doc.rect(14,87,182,8,'F');
+  doc.setTextColor(180,180,220); doc.setFontSize(9);
+  doc.text('Timestamp',16,93); doc.text('Emotion',110,93); doc.text('Confidence',160,93);
+  let y=101;
+  logs.slice(-50).forEach((l,i)=>{
+    if(y>270){doc.addPage();y=20;}
+    doc.setFillColor(i%2===0?15:20,i%2===0?15:20,i%2===0?30:40);
+    doc.rect(14,y-5,182,7,'F');
+    doc.setTextColor(200,200,220); doc.setFontSize(8);
+    doc.text(new Date(l.timestamp).toLocaleString(),16,y);
+    doc.text(l.emotion,110,y);
+    doc.text(l.confidence.toFixed(1)+'%',160,y);
+    y+=7;
+  });
+  doc.save('emotion_report_'+statsMode+'_'+Date.now()+'.pdf');
+}
+
+window.addEventListener('load',init);
 </script>
 </body>
 </html>

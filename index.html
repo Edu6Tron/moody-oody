@@ -517,17 +517,24 @@ async function loadModelsAndStart() {
 }
 
 async function startCamera() {
-  const video = document.getElementById('video');
-  const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 640, height: 480 }, audio: false });
+  const video  = document.getElementById('video');
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode:'user', width:640, height:480 },
+    audio: false
+  });
   video.srcObject = stream;
-  
-  return new Promise((resolve) => {
-    video.onloadedmetadata = () => {
-      video.play();
-      const overlay = document.getElementById('overlay');
-      overlay.width = video.videoWidth;
-      overlay.height = video.videoHeight;
-      resolve();
+  await new Promise(r => video.onloadedmetadata = r);
+
+  // Match canvas EXACTLY to video display size — not stream size
+  const overlay   = document.getElementById('overlay');
+  const resizeObs = new ResizeObserver(() => {
+    overlay.width  = video.clientWidth;
+    overlay.height = video.clientHeight;
+  });
+  resizeObs.observe(video);
+  overlay.width  = video.clientWidth;
+  overlay.height = video.clientHeight;
+}
     };
   });
 }
@@ -579,16 +586,40 @@ function mapEmotion(s) {
 }
 
 function drawFaceBox(ctx, box, emotion) {
-  const color = COLORS[emotion] || '#ffffff';
-  const {x, y, width, height} = box;
-  const mx = ctx.canvas.width - x - width;
+  const video   = document.getElementById('video');
+  const overlay = document.getElementById('overlay');
+
+  // Scale from stream size to display size
+  const scaleX  = overlay.width  / video.videoWidth;
+  const scaleY  = overlay.height / video.videoHeight;
+
+  const color   = COLORS[emotion] || '#ffffff';
+  const emoji   = EMOJIS[emotion] || '🔍';
+
+  // box coords are in stream space → scale to display space
+  const bx = box.x * scaleX;
+  const by = box.y * scaleY;
+  const bw = box.width  * scaleX;
+  const bh = box.height * scaleY;
+
+  // Mirror X because video is flipped with CSS scaleX(-1)
+  const mx = overlay.width - bx - bw;
+
+  // Draw rectangle
   ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
-  ctx.strokeRect(mx, y, width, height);
-  const emoji = EMOJIS[emotion] || '🔍';
-  ctx.font = '32px serif';
+  ctx.lineWidth   = 2.5;
+  ctx.strokeRect(mx, by, bw, bh);
+
+  // Glow effect — second larger rect
+  ctx.strokeStyle = color + '44';
+  ctx.lineWidth   = 6;
+  ctx.strokeRect(mx - 3, by - 3, bw + 6, bh + 6);
+
+  // Emoji above the box
+  ctx.font      = '28px serif';
   ctx.textAlign = 'center';
-  ctx.fillText(emoji, mx + width/2, Math.max(36, y - 8));
+  const ey = Math.max(30, by - 6);
+  ctx.fillText(emoji, mx + bw / 2, ey);
 }
 
 function updateEmotionUI(emotion, conf) {

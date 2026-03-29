@@ -42,8 +42,26 @@ header h1 span{color:#fff;font-weight:bold;}
 .icon-btn:hover{background:#2a2a3e;}
 .app-body{display:flex;flex-wrap:wrap;gap:14px;padding:14px;flex:1;justify-content:center;}
 
-.camera-wrap{position:relative;border-radius:14px;overflow:hidden;border:2px solid var(--border);flex:1;min-width:280px;max-width:560px;background:#000;}
-#video{width:100%;display:block;transform:scaleX(-1);}
+.camera-wrap{
+  position:relative;
+  border-radius:14px;
+  overflow:hidden;
+  border:2px solid var(--border);
+  flex:1;
+  min-width:280px;
+  max-width:560px;
+  background:#000;
+  /* Key fix: don't stretch height */
+  align-self:flex-start;
+}
+#video{
+  width:100%;
+  height:auto;
+  display:block;
+  transform:scaleX(-1);
+  max-height:70vh;   /* prevent video from being too tall on mobile */
+  object-fit:contain;
+}
 #overlay{position:absolute;top:0;left:0;pointer-events:none;}
 .emotion-bar{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(4px);padding:10px 14px;display:flex;align-items:center;gap:10px;}
 #emoji-display{font-size:30px;transition:all 0.5s;}
@@ -116,7 +134,7 @@ header h1 span{color:#fff;font-weight:bold;}
       <h1>🎵 Connect Spotify</h1>
       <p>Log in with your Spotify Premium account to play music based on your emotions.</p>
       <br>
-      <button class="spotify-btn" onclick="spotifyLogin()">Connect Spotify Premium</button>
+      <button class="spotify-btn" onclick="()">Connect Spotify Premium</button>
       <div class="divider">or</div>
       <button class="btn-primary" style="background:#1a1a2e;border:1px solid var(--border);" onclick="skipSpotify()">
         Skip — use without music
@@ -242,9 +260,59 @@ function saveName(){
   document.getElementById('step2').classList.add('active');
 }
 
-function spotifyLogin(){
-  const p=new URLSearchParams({client_id:SPOTIFY_CLIENT_ID,response_type:'token',redirect_uri:SPOTIFY_REDIRECT,scope:SPOTIFY_SCOPES});
-  window.location.href='https://accounts.spotify.com/authorize?'+p.toString();
+// ── SPOTIFY PKCE AUTH ─────────────────────────────────
+async function generateCodeVerifier(){
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  return btoa(String.fromCharCode(...array))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+
+async function generateCodeChallenge(verifier){
+  const data    = new TextEncoder().encode(verifier);
+  const digest  = await crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode(...new Uint8Array(digest)))
+    .replace(/\+/g,'-').replace(/\//g,'_').replace(/=/g,'');
+}
+
+async function spotifyLogin(){
+  const verifier   = await generateCodeVerifier();
+  const challenge  = await generateCodeChallenge(verifier);
+  localStorage.setItem('pkce_verifier', verifier);
+
+  const params = new URLSearchParams({
+    client_id:             SPOTIFY_CLIENT_ID,
+    response_type:         'code',
+    redirect_uri:          SPOTIFY_REDIRECT,
+    scope:                 SPOTIFY_SCOPES,
+    code_challenge_method: 'S256',
+    code_challenge:        challenge,
+  });
+  window.location.href = 'https://accounts.spotify.com/authorize?' + params.toString();
+}
+
+async function exchangeCodeForToken(code){
+  const verifier = localStorage.getItem('pkce_verifier');
+  const body     = new URLSearchParams({
+    grant_type:    'authorization_code',
+    code:          code,
+    redirect_uri:  SPOTIFY_REDIRECT,
+    client_id:     SPOTIFY_CLIENT_ID,
+    code_verifier: verifier,
+  });
+  const res  = await fetch('https://accounts.spotify.com/api/token', {
+    method:  'POST',
+    headers: {'Content-Type':'application/x-www-form-urlencoded'},
+    body:    body.toString(),
+  });
+  const data = await res.json();
+  if(data.access_token){
+    spotifyToken = data.access_token;
+    localStorage.setItem('emp_token', data.access_token);
+    // Store refresh token too
+    if(data.refresh_token)
+      localStorage.setItem('emp_refresh', data.refresh_token);
+  }
 }
 
 function skipSpotify(){localStorage.setItem('emp_skip_spotify','1');startApp();}
@@ -255,18 +323,21 @@ function logout(){
   location.reload();
 }
 
-function init(){
-  const hash=new URLSearchParams(window.location.hash.slice(1));
-  const token=hash.get('access_token');
-  if(token){
-    spotifyToken=code;
-    localStorage.setItem('emp_token',token);
-    window.history.replaceState({},'',window.location.pathname);
+async function init(){
+  // PKCE returns ?code= in query params (not hash)
+  const urlParams = new URLSearchParams(window.location.search);
+  const code      = urlParams.get('code');
+
+  if(code){
+    // Clear code from URL
+    window.history.replaceState({}, '', window.location.pathname);
+    await exchangeCodeForToken(code);
   } else {
-    spotifyToken=localStorage.getItem('emp_token');
+    spotifyToken = localStorage.getItem('emp_token');
   }
-  userName=localStorage.getItem('emp_name');
-  if(!userName){showPage('page-login');return;}
+
+  userName = localStorage.getItem('emp_name');
+  if(!userName){ showPage('page-login'); return; }
   startApp();
 }
 
@@ -300,42 +371,22 @@ async function loadModelsAndStart(){
 async function startCamera(){
   const video   = document.getElementById('video');
   const overlay = document.getElementById('overlay');
-  const stream  = await navigator.mediaDevices.getUserMedia({
-    video:{facingMode:'user',width:640,height:480},audio:false
+
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video:{ facingMode:'user' },
+    audio:false
   });
   video.srcObject = stream;
-  await new Promise(r=>{video.onloadedmetadata=r;});
+  await new Promise(r=>{ video.onloadedmetadata = r; });
+  await new Promise(r=>setTimeout(r, 300));
 
   function syncSize(){
-    // Get exact rendered size of video content — not container size
-    const rect = video.getBoundingClientRect();
-    const videoAspect = video.videoWidth / video.videoHeight;
-    const elemAspect  = rect.width / rect.height;
-
-    let contentW, contentH, offsetX, offsetY;
-
-    if(videoAspect > elemAspect){
-      // Letterbox top/bottom
-      contentW = rect.width;
-      contentH = rect.width / videoAspect;
-      offsetX  = 0;
-      offsetY  = (rect.height - contentH) / 2;
-    } else {
-      // Letterbox left/right
-      contentH = rect.height;
-      contentW = rect.height * videoAspect;
-      offsetX  = (rect.width - contentW) / 2;
-      offsetY  = 0;
-    }
-
-    overlay.width  = contentW;
-    overlay.height = contentH;
-    overlay.style.left = offsetX + 'px';
-    overlay.style.top  = offsetY + 'px';
+    // Use natural rendered video dimensions only
+    overlay.width  = video.clientWidth;
+    overlay.height = video.clientHeight;
+    overlay.style.width  = video.clientWidth  + 'px';
+    overlay.style.height = video.clientHeight + 'px';
   }
-
-  // Wait for video to fully render before syncing
-  await new Promise(r => setTimeout(r, 200));
   syncSize();
   new ResizeObserver(syncSize).observe(video);
 }
